@@ -14,11 +14,11 @@ use Prism\Prism\Embeddings\Response as EmbeddingResponse;
 use Prism\Prism\Exceptions\PrismException;
 use Prism\Prism\Exceptions\PrismProviderOverloadedException;
 use Prism\Prism\Exceptions\PrismRateLimitedException;
-use Prism\Prism\Providers\Gemini\Handlers\Embeddings;
-use Prism\Prism\Providers\Gemini\Handlers\Stream;
-use Prism\Prism\Providers\Gemini\Handlers\Structured;
-use Prism\Prism\Providers\Gemini\Handlers\Text;
 use Prism\Prism\Providers\Provider;
+use Prism\Prism\Providers\VertexAI\Handlers\Embeddings;
+use Prism\Prism\Providers\VertexAI\Handlers\Stream;
+use Prism\Prism\Providers\VertexAI\Handlers\Structured;
+use Prism\Prism\Providers\VertexAI\Handlers\Text;
 use Prism\Prism\Structured\Request as StructuredRequest;
 use Prism\Prism\Structured\Response as StructuredResponse;
 use Prism\Prism\Text\Request as TextRequest;
@@ -138,9 +138,17 @@ class VertexAI extends Provider
             );
         }
 
+        $path = $this->credentials ?? '';
+
+        if (! is_file($path)) {
+            throw new PrismException(
+                "Vertex AI credentials file not found: {$path}"
+            );
+        }
+
         $credentials = new ServiceAccountCredentials(
             scope: 'https://www.googleapis.com/auth/cloud-platform',
-            jsonKey: json_decode($this->credentials ?? '', true),
+            jsonKey: json_decode((string) file_get_contents($path), true),
         );
 
         $token = $credentials->fetchAuthToken();
